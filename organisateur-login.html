@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Organisateur</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Connexion Organisateur</h1>
+
+    <div class="container">
+
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Ex: organisateur@exemple.com" required>
+
+        <label>Mot de passe</label>
+        <input type="password" id="password" required>
+
+        <button id="loginBtn" type="button">Se connecter</button>
+
+    </div>
+
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script>
+        const pb = new PocketBase("https://pocketbase-render-v2.onrender.com");
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            try {
+                await pb.collection("organizers").authWithPassword(email, password);
+                window.location.href = "organisateur-groupes.html";
+
+            } catch (err) {
+                alert("Connexion impossible.");
+                console.error(err);
+            }
+        });
+    </script>
+
+</body>
+</html>
