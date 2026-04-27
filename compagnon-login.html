@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Compagnon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Connexion Compagnon</h1>
+
+    <div class="container">
+
+        <label>Nom du compagnon</label>
+        <input type="text" id="name" placeholder="Ex: Locarnini" required>
+
+        <label>Code d'accès</label>
+        <input type="number" id="accessCode" placeholder="Ex: 2026" required>
+
+        <label>Mot de passe individuel</label>
+        <input type="password" id="password" placeholder="Ex: Tortue2026" required>
+
+        <button id="loginBtn" type="button">Rejoindre le groupe</button>
+
+    </div>
+
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script>
+        const pb = new PocketBase("https://pocketbase-render-v2.onrender.com");
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const name = document.getElementById("name").value.trim();
+            const accessCode = document.getElementById("accessCode").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            try {
+                const group = await pb.collection("groups").getFirstListItem(`accessCode = ${accessCode}`);
+
+                const companion = await pb.collection("companions").getFirstListItem(
+                    `name = "${name}" && group = "${group.id}"`
+                );
+
+                await pb.collection("companions").authWithPassword(companion.email, password);
+
+                localStorage.setItem("companionId", companion.id);
+                localStorage.setItem("groupId", group.id);
+
+                window.location.href = "compagnon-panier.html";
+
+            } catch (err) {
+                alert("Connexion impossible. Vérifie le nom, le code d'accès ou le mot de passe.");
+                console.error(err);
+            }
+        });
+    </script>
+
+</body>
+</html>
