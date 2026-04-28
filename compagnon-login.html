@@ -1,60 +1,55 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Compagnon</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Connexion Compagnon</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <h1>Connexion Compagnon</h1>
+<header>
+  <h1>Connexion Compagnon</h1>
+</header>
 
-    <div class="container">
+<div class="container">
+  <h2>Se connecter</h2>
 
-        <label>Nom du compagnon</label>
-        <input type="text" id="name" placeholder="Ex: Locarnini" required>
+  <label>Email</label>
+  <input type="email" id="email" placeholder="Bénabar" required>
 
-        <label>Code d'accès</label>
-        <input type="number" id="accessCode" placeholder="Ex: 2026" required>
+  <label>Mot de passe</label>
+  <input type="password" id="password" placeholder="Votre mot de passe" required>
 
-        <label>Mot de passe individuel</label>
-        <input type="password" id="password" placeholder="Ex: Tortue2026" required>
+  <button id="loginBtn">Connexion</button>
 
-        <button id="loginBtn" type="button">Rejoindre le groupe</button>
+  <p id="error" style="color:red; display:none; margin-top:10px;">
+    Connexion impossible. Vérifie l'email ou le mot de passe.
+  </p>
+</div>
 
-    </div>
+<script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+<script>
+  const pb = new PocketBase("http://127.0.0.1:8090");
 
-    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
-    <script>
-        const pb = new PocketBase("https://pocketbase-render-v2.onrender.com");
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-        document.getElementById("loginBtn").addEventListener("click", async () => {
-            const name = document.getElementById("name").value.trim();
-            const accessCode = document.getElementById("accessCode").value.trim();
-            const password = document.getElementById("password").value.trim();
+    try {
+      // Authentification avec email + mot de passe
+      const authData = await pb.collection("companions").authWithPassword(email, password);
 
-            try {
-                const group = await pb.collection("groups").getFirstListItem(`accessCode = ${accessCode}`);
+      // Stocker l'ID du compagnon pour la page panier
+      localStorage.setItem("companionId", authData.record.id);
 
-                const companion = await pb.collection("companions").getFirstListItem(
-                    `name = "${name}" && group = "${group.id}"`
-                );
+      // Redirection vers la page panier
+      window.location.href = "compagnon-panier.html";
 
-                await pb.collection("companions").authWithPassword(companion.email, password);
-
-                localStorage.setItem("companionId", companion.id);
-                localStorage.setItem("groupId", group.id);
-
-                window.location.href = "compagnon-panier.html";
-
-            } catch (err) {
-                alert("Connexion impossible. Vérifie le nom, le code d'accès ou le mot de passe.");
-                console.error(err);
-            }
-        });
-    </script>
+    } catch (err) {
+      document.getElementById("error").style.display = "block";
+    }
+  });
+</script>
 
 </body>
 </html>
