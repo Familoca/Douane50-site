@@ -1,21 +1,63 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panier Compagnon</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Panier du Compagnon</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <h1>Panier du Compagnon</h1>
+<header>
+  <h1>Panier du Compagnon</h1>
+</header>
 
-    <div class="container">
-        <p>Contenu du panier à venir…</p>
+<div class="container" id="basketContainer">
+  <p>Chargement du panier...</p>
+</div>
 
-        <button onclick="location.href='index.html'">Retour</button>
-    </div>
+<script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+<script>
+  const pb = new PocketBase("http://127.0.0.1:8090");
+
+  async function loadBasket() {
+    const companionId = localStorage.getItem("companionId");
+    if (!companionId) {
+      document.getElementById("basketContainer").innerHTML = `
+        <p>Session expirée. Veuillez vous reconnecter.</p>
+        <button onclick="window.location.href='compagnon-login.html'">Retour</button>
+      `;
+      return;
+    }
+
+    try {
+      // Vérifie si un panier existe déjà pour ce compagnon
+      let basket;
+      try {
+        basket = await pb.collection("baskets").getFirstListItem(`companion="${companionId}"`);
+      } catch {
+        // Aucun panier trouvé → on le crée automatiquement
+        basket = await pb.collection("baskets").create({
+          companion: companionId,
+          items: []
+        });
+      }
+
+      // Affiche le contenu du panier
+      document.getElementById("basketContainer").innerHTML = `
+        <h2>Panier du compagnon</h2>
+        <pre>${JSON.stringify(basket.items, null, 2)}</pre>
+        <button onclick="window.location.href='index.html'">Retour</button>
+      `;
+    } catch (err) {
+      document.getElementById("basketContainer").innerHTML = `
+        <p>Erreur lors du chargement du panier.</p>
+        <button onclick="window.location.href='index.html'">Retour</button>
+      `;
+    }
+  }
+
+  loadBasket();
+</script>
 
 </body>
 </html>
